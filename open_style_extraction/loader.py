@@ -22,7 +22,7 @@ class DataGenerator:
     def __init__(self, config, data_path):
         self.config = config
         self.path = data_path
-        self.vocab = self.load_vocab(self.config["vocab_path"])
+        self.vocab = load_vocab(self.config["vocab_path"])
         self.config['vocab_size'] = len(self.vocab)
         self.sentences = []
         
@@ -73,9 +73,6 @@ class DataGenerator:
         return
         
         
-    def load_vocab(self, vocab_path):
-        with open(vocab_path, "r", encoding="utf-8") as f:
-            return json.load(f)
     
     def process_sentence(self, context, object, attribute, value)->Tuple[List[int], List[int]]:
         '''
@@ -94,22 +91,22 @@ class DataGenerator:
         assert len(context) == len(input_id) # 一个字符对应一个token
         
         # 初始化 label数组
-        label = ["O"] * len(input_id)
+        label = [self.schema["O"]] * len(input_id)
         
         # 标记实体
-        label[object_start] = "B_object"
+        label[object_start] = self.schema["B_object"]
         for i in range(object_start+1,  object_start+len(object)):
-            label[i] = "I_object"
+            label[i] = self.schema["I_object"]
 
         # 标记属性
-        label[attribute_start] = "B_attribute"
+        label[attribute_start] = self.schema["B_attribute"]
         for i in range(attribute_start+1, attribute_start+len(attribute)):
-            label[i] = "I_attribute"
+            label[i] = self.schema["I_attribute"]
 
         # 标记属性值
-        label[value_start] = "B_value"
+        label[value_start] = self.schema["B_value"]
         for i in range(value_start+1, value_start + len(value)):
-            label[i] = "I_value"
+            label[i] = self.schema["I_value"]
         
         input_id = self.padding(input_id, 0)
         label = self.padding(label, -100)
@@ -123,7 +120,7 @@ class DataGenerator:
         '''
         input_id = []
         for char in text:
-            input_id.append(self.vocab.get(char, '[UNK]'))
+            input_id.append(self.vocab.get(char, self.vocab['[UNK]']))
             
         if padding:
             self.padding(input_id)
@@ -152,3 +149,41 @@ class DataGenerator:
         with open(path, encoding = "utf-8") as f:
             schema = json.load(f)
         return schema
+    
+    
+    
+    def get_first_5_samples(self):
+        for i in range(5):
+            print("========================")
+            self.data[i]
+            self.text_data[i]
+    
+    
+    
+    
+def load_vocab(vocab_path):
+    token_dict = {}
+    with open(vocab_path, "r", encoding="utf-8") as f:
+        for i, line in enumerate(f):
+            token = line.strip()
+            token_dict[token] = i+1  #0留给padding位置，所以从1开始
+            
+    return token_dict
+
+
+def load_data(data_path, config, shuffle=True):
+    dg = DataGenerator(config, data_path)
+    
+    dl = DataLoader(dg, batch_size=config['batch_size'], shuffle=True)
+    
+    return dl
+
+
+
+
+
+if __name__ == '__main__':
+    from config import Config
+    dg = DataGenerator(Config, Config['train_data_path'])
+    
+    print(dg[0])
