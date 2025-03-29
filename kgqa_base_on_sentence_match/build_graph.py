@@ -122,22 +122,30 @@ graph.run(cypher)
 #记录我们图谱里都有哪些实体，哪些属性，哪些关系，哪些标签
 data = defaultdict(set)
 for head in relation_data:
-    pass
+    data['entitys'].add(head)
+    for relation, tail in relation_data[head].items():
+        data['entitys'].add(tail)
+        data['entitys'].add(relation)
 
 
 
 
 for entity, label in label_data.items():
-    pass
+    data['entitys'].add(entity)
+    data['labels'].add(label)
+
 
 
 
 for enti in attribute_data:
-    pass
+    data['entitys'].add(enti)
+    for attr, value in attribute_data[enti].items():
+        data["attributes"].add(attr)
+
     
     
     
-    
+data = dict((x, list(y)) for x,y in data.items())
 
 
 with open("kg_schema.json", "w", encoding="utf8") as f:
