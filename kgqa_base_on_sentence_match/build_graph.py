@@ -56,11 +56,89 @@ with open("triplets_head_rel_tail.txt", encoding="utf8") as f:
 #读取实体-属性-属性值三元组文件
 with open("triplets_enti_attr_value.txt", encoding="utf8") as f:
     for line in f:
-        pass
-    
+        entity, attribute, value = line.strip().split("\t")  # 取出三元组
+        entity = get_label_then_clean(entity, label_data)
+        attribute_data[entity][attribute] = value
     
 
 
 
 #构建cypher语句
 cypher = ""
+in_graph_entity = set()
+
+for i, entity in enumerate(attribute_data):
+    #为所有的实体增加一个名字属性
+    attribute_data[entity]['NAME'] = entity   # 用实体本身的文本来初始化名称
+    #将一个实体的所有属性拼接成一个类似字典的表达式
+    text = "{"
+    
+    
+    for attribute, value in attribute_data[entity].items():
+        text += "%s:\'%s\',"%(attribute, value)
+    
+    text = text[:-1] + "}"   # 去掉最后一个逗号, 加上大括号
+    
+    if entity in label_data:
+        label = label_data[entity]
+        # 带标签的实体构建语句  (实体， 标签，属性字典)
+        cypher += "CREATE (%s:%s %s)"%(entity, label, text) + "\n"  
+    else:
+        # 不带标签的实体构建语句
+        cypher += "CREATE (%s %s)"%(entity, text) + '\n'
+    
+    in_graph_entity.add(entity)
+    
+    
+    
+    
+#构建关系语句
+for i, head in enumerate(relation_data):
+    
+    # 有可能实体只有和其他实体的关系，但没有属性，为这样的实体增加一个名称属性，便于在图上认出
+    if head not in in_graph_entity:
+        cypher+= "CREATE (%s {NAME:'%s'})" % (head, head) + "\n"
+        in_graph_entity.add(head)
+        
+    for relation, tail in relation_data[head].items():
+        # 有可能实体只有和其他实体的关系，但没有属性，为这样的实体增加一个名称属性，便于在图上认出
+        if tail not in in_graph_entity:
+            cypher += "CREATE (%s {NAME:'%s'})" % (tail, tail) + '\n'
+            in_graph_entity.add(tail)
+            
+            
+        # 关系语句
+        cypher += "CREATE (%s)-[:%s]->(%s)"%(head, relation, tail)+ '\n'
+        
+        
+        
+print(cypher)
+
+# 执行建表脚本
+graph.run(cypher)
+
+
+
+#记录我们图谱里都有哪些实体，哪些属性，哪些关系，哪些标签
+data = defaultdict(set)
+for head in relation_data:
+    pass
+
+
+
+
+for entity, label in label_data.items():
+    pass
+
+
+
+for enti in attribute_data:
+    pass
+    
+    
+    
+    
+
+
+with open("kg_schema.json", "w", encoding="utf8") as f:
+    f.write(json.dumps(data, ensure_ascii=False, indent=2))
