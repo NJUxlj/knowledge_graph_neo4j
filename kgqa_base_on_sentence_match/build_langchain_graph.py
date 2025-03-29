@@ -38,6 +38,32 @@ driver = GraphDatabase.driver(
 )  
 
 
+
+'''
+官方Embedding服务参数：
+
+模型选择：使用embedding-2型号（默认1024维向量）
+吞吐量优化：单次支持最多25条文本批量处理
+
+自动分片：当文本超过API限制（约500字）时自动分割处理
+架构改进：
+
+复用同一API密钥：降低配置复杂度
+统一技术栈：LLM与Embedding均使用智谱服务
+维度匹配：Neo4j向量索引需使用vector.前缀配置维度：
+
+cypher
+CREATE VECTOR INDEX knowledge_graph   
+FOR (n:Entity) ON (n.embedding)   
+OPTIONS {indexConfig: {  
+  `vector.dimensions`: 1024,  
+  `vector.similarity_function`: 'cosine'  
+}}  
+
+'''
+
+
+
 class ZhipuAIEmbeddings(Embeddings):  
     """智谱Embedding服务封装类"""  
     def __init__(self, model="embedding-2"):  
