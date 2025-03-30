@@ -48,27 +48,49 @@ class GraphQA:
         
         
 
-    def load_question_templet(self):
-        pass
+    def load_question_templet(self, templet_path):
+        '''
+        加载模板信息
+        '''
+        dataframe = pandas.read_excel(templet_path)
+        self.question_templet = []
+        
+        for index in range(len(dataframe)):
+            question = dataframe[question][index]
+            cypher = dataframe[cypher][index]
+            cypher_check = dataframe[cypher_check][index]
+            answer = dataframe[answer][index]
+            
+            self.question_templet.append([
+                question, cypher, cypher_check, answer
+            ])
+             
+        return
     
     
     
     def get_mention_entitys(self, sentence):
-        pass
+        '''
+        #获取问题中谈到的实体，可以使用基于词表的方式，也可以使用NER模型
+        '''
+        return re.findall("|".join(self.entity_set), sentence)
     
     
     def get_mention_relations(self,sentence):
-        pass
+        '''
+        # 获取问题中谈到的关系，也可以使用各种文本分类模型
+        '''
+        return re.findall("|".join(self.relation_set), sentence)
     
     
     
     def get_mention_attributes(self, sentence):
-        pass
+        return re.findall(pattern="|".join(self.attribute_set), string=sentence)
     
     
     
     def get_mention_labels(self, sentence):
-        pass
+        return re.findall(pattern="|".join(self.label_set), string=sentence)
     
     
     
@@ -77,7 +99,7 @@ class GraphQA:
         '''
         ## Function:
         - 对sentence进行预处理，提取所给句子中需要的信息 <实体，关系，属性，标签>， 每个都是一个列表。
-        - 将所有抽取出的信息列表包装成一个子带你进行返回
+        - 将所有抽取出的信息列表包装成一个子列表进行返回
         - 
         '''
         
@@ -95,12 +117,72 @@ class GraphQA:
     
     
     
-    def decode_value_combination(self, ):
-        pass
+    def decode_value_combination(self, value_combination, cypher_check):
+        '''
+        将提取的值分配到键上
+        
+        index: 当前槽位的索引，用于从value_combination中获取对应的值
+        key: 占位符名称，如%ENT%、%REL%
+        required_count: 该占位符需要的值的数量
+        '''
+        
+        res = {} # 存储 占位符->值 的映射关系
+
+        '''
+        index: 当前槽位的索引，用于从value_combination中获取对应的值
+        key: 占位符名称，如%ENT%、%REL%
+        required_count: 该占位符需要的值的数量
+        '''
+        for index, (key, required_count) in enumerate(cypher_check.items()):
+            if required_count==1:
+                res[key] = value_combination[index][0]
+            else:
+                '''
+                当需要多个值时，为每个值生成带编号的占位符
+                    例如：%ENT%变为%ENT0%和%ENT1%
+                    生成结果如：{"%ENT0%":"周杰伦", "%ENT1%":"方文山"}
+                '''
+                for i in range(required_count):
+                    key_num = key[:-1] + str(i) + "%"
+                    res[key_num] = value_combination[index][i]
+                
+        return res
+            
     
     
-    def get_combinations(self):
-        pass
+    def get_combinations(self, cypher_check, info):
+        '''
+        #对于找到了超过模板中需求的实体数量的情况，需要进行排列组合
+        #info:{"%ENT%":["周杰伦", "方文山"], “%REL%”:[“作曲”]}
+        
+        该方法的主要作用是根据模板中定义的槽位需求(cypher_check)，
+            对从问题中提取的信息(info)进行排列组合，生成所有可能的组合方式。
+
+        
+        ## Args:
+        - cypher_check: 模板中定义的槽位需求，格式如{"%ENT%":2, "%REL%":1}，表示需要2个实体和1个关系
+        - info: 从问题中提取的信息，格式如{"%ENT%":["周杰伦","方文山"], "%REL%":["作曲"]}
+        '''
+        slot_values = []
+        # 遍历每个槽位需求
+        for key, required_count in cypher_check.items():
+            slot_values.append(itertools.combinations(info[key], required_count))  # 对每个槽位(%ENT%, %REL%等)，从info中获取对应的值列表
+            
+        value_combinations = itertools.product(*slot_values) # 对每个槽位的combinations做累乘， 
+        '''
+        使用itertools.product计算所有槽位组合的笛卡尔积
+            例如：如果有两个槽位，一个槽位有2种组合，另一个有1种，则总共生成2×1=2种组合
+        '''
+
+        combinations = []
+        '''
+        对每种组合调用decode_value_combination方法进行解码
+            解码后的格式如：{"%ENT1%":"周杰伦", "%ENT2%":"方文山", "%REL%":"作曲"}
+        '''
+        for value_combination in value_combinations:
+            combinations.append(self.decode_value_combination(value_combination, cypher_check))
+            
+        return  combinations
     
     
     def replace_token_in_string(self, string:str, combinations:Dict):
