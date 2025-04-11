@@ -13,7 +13,9 @@ from transformers import BertTokenizer
 """
 模型效果测试
 """
-
+class SentenceLabel:
+    def __init__(self, config, model_path):
+        self.config = config
 
 
 

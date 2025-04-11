@@ -16,16 +16,15 @@ from typing import Dict, List, Tuple, Union, Literal, Optional
 
 class GraphQA:
     def __init__(self, ):
-        graph = Graph()
+        self.graph = Graph("http://localhost:7474", auth=("neo4j", "123456"))
         
-        schema_path = None
+        schema_path = "kg_schema.json"
         
-        templet_path = None
+        templet_path = "question_templet.xlsx"
         
         self.load(schema_path, templet_path)
         
         print("知识图谱问答系统加载完毕！\n===============")
-        
         
         
     def load(self, schema_path, templet_path):
@@ -119,11 +118,24 @@ class GraphQA:
     
     def decode_value_combination(self, value_combination, cypher_check):
         '''
-        将提取的值分配到键上
+        ## 作用：
+        这个函数 decode_value_combination 的主要作用是将从问题中提取的值按照模板需求分配到对应的占位符上，生成一个映射字典。具体来说：
+
+        ### 输入参数:
+        - value_combination: 从问题中提取的值组合（通常是排列组合后的结果）
+        - cypher_check: 模板中定义的槽位需求，格式如 {"%ENT%":2, "%REL%":1}，表示需要2个实体和1个关系
         
-        index: 当前槽位的索引，用于从value_combination中获取对应的值
-        key: 占位符名称，如%ENT%、%REL%
-        required_count: 该占位符需要的值的数量
+        ### 核心功能:
+        - 遍历每个槽位需求（如 %ENT%, %REL% 等）
+        - 如果槽位只需要1个值（required_count==1），直接将该值映射到占位符
+        - 如果槽位需要多个值，为每个值生成带编号的占位符（如 %ENT0%, %ENT1%）
+        
+        ## 输出结果:
+        - 返回一个字典，包含占位符到实际值的映射关系
+        - 例如输入 value_combination 是 [("周杰伦", "方文山"), ("作曲",)]，cypher_check 是 {"%ENT%":2, "%REL%":1}
+        - 输出会是 {"%ENT0%":"周杰伦", "%ENT1%":"方文山", "%REL%":"作曲"}
+        
+        这个函数是模板填充的关键步骤，为后续的字符串替换（将模板中的占位符替换为实际值）提供数据准备。
         '''
         
         res = {} # 存储 占位符->值 的映射关系
@@ -143,7 +155,7 @@ class GraphQA:
                     生成结果如：{"%ENT0%":"周杰伦", "%ENT1%":"方文山"}
                 '''
                 for i in range(required_count):
-                    key_num = key[:-1] + str(i) + "%"
+                    key_num = key[:-1] + str(i) + "%"    # key = "%ENT%" -> key_num = "%ENT0%"
                     res[key_num] = value_combination[index][i]
                 
         return res
@@ -196,10 +208,101 @@ class GraphQA:
             
         return string
     
+    def check_cypher_info_valid(self, info:Dict, cypher_check):
+        '''
+        # 验证从文本种提取到的信息是否足够填充模板，如果不足够就跳过，节省运算速度
+
+        # 如模板：  %ENT%和%ENT%是什么关系？  这句话需要两个实体才能填充，如果问题中只有一个，该模板无法匹配
+        '''
+        for key, required_count in cypher_check.items():
+            if key not in info:
+                return False
+            if len(info.get(key,[])) < required_count:
+                return False
+            
+        return True
+    
+    def expand_templet(self, templet, cypher, cypher_check, info, answer):
+        '''
+        #对于单条模板，根据抽取到的实体属性信息扩展，形成一个列表
+        #info:{"%ENT%":["周杰伦", "方文山"], “%REL%”:[“作曲”]}
+        '''
+        combinations = self.get_combinations(cypher_check, info)
+        
+        templet_cypher_pair = []
+        
+        for combination in combinations:
+            replaced_templet = None
+            replaced_cypher = None
+            replaced_answer = None
+            
+            templet_cypher_pair.append()
+        
+        return templet_cypher_pair
+            
+        
+        
+        
+    def expand_question_and_cypher(self, info):
+        '''
+        根据提取到的实体，关系等信息，将模板展开成待匹配的问题文本
+        '''
+        templet_cypher_pair = []
+        for templet, cypher, cypher_check, answer in self.question_templet:
+            if self.check_cypher_info_valid(info, cypher_check):
+                templet_cypher_pair += self.expand_templet(templet, cypher, cypher_check, info, answer)
+        
+        return templet_cypher_pair
+        
+        
+        
+        
+    
+    def sentence_similarity_function(self, sentence1:str, sentence2:str):
+        '''
+        # 使用 jaccrad距离 计算两个句子的相似度
+        
+        特点：
+        - 返回值范围在0到1之间，1表示完全相同，0表示完全不同
+        - 只考虑单词是否出现，不考虑单词顺序和出现频率
+        - 适用于简单的文本匹配场景，计算效率高
+        '''
+        words1 = set(sentence1.split())
+        words2 = set(sentence2.split())
+        intersection = words1 & words2
+        union = words1 | words2
+        
+        # Jaccard相似度 = 交集大小 / 并集大小
+        similarity = len(intersection) / len(union) if union else 0
+        return similarity
+        
+        
+    
+    def cypher_match(self, sentence, info):
+        '''
+        ## Args:
+            sentence: 问题文本
+            info: 问题文本中提取到的实体，关系等信息, 格式： {"%ENT%":["周杰伦", "方文山"], “%REL%”:[“作曲”]}
+        '''
+        templet_cypher_pair = self.expand_question_and_cypher(info)
+        # print(templet_cypher_pair)
+        result = []
+        
+        for templet, cypher, answer in templet_cypher_pair:
+            score = self.sentence_similarity_function(sentence, templet)
+            # print(sentence, templet, score)
+            result.append([templet, cypher, score, answer])
+        
+        result = sorted(result, key=lambda x: x[2], reverse=True)
+        
+        return result
     
     def parse_result(self, graph_search_result, answer, info):
         '''
          解析知识图谱的查询结果
+         
+         ## Args:
+         - graph_search_result: List[Dict]
         '''
         graph_search_result = graph_search_result[0]
         
@@ -223,10 +326,9 @@ class GraphQA:
 
         # 遍历所有的模板 和 对应填充后的cypher语句
         for templet, cypher, score, answer in templet_cypher_score:
-            graph_search_result = self.graph.run(cypher).data()
+            graph_search_result:List[Dict] = self.graph.run(cypher).data()
     
             # 最高分命中的模板不一定在图上能找到答案, 当不能找到答案时，运行下一个搜索语句, 找到答案时停止查找后面的模板
-        
             if graph_search_result:
                 answer = self.parse_result(graph_search_result, answer, info)
                 return answer
