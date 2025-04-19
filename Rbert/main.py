@@ -7,9 +7,9 @@ import os
 import numpy as np
 import logging
 from .config import Config
-from model import RBert, choose_optimizer
-from evaluate import Evaluator
-from loader import load_data
+from .model import RBert, choose_optimizer
+from .evaluate import Evaluator
+from .loader import load_data
 
 logging.basicConfig(level = logging.INFO,format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)

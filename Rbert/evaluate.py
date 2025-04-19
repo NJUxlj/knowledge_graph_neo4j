@@ -21,4 +21,5 @@ class Evaluator:
         
         
     def eval(self, epoch):
-        pass
+        self.logger.info("开始测试第i%d轮模型的效果" % epoch)
+        self.stats_dict = {"object_acc":0, "attribute_acc":0, "value_acc":0, "full_match_acc":0}  # 含义： 实体1识别准确率， 关系识别准确率， 实体2识别准确率， 三者完全匹配准确率
