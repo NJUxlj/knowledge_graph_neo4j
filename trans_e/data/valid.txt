@@ -1,0 +1,14 @@
+Spain hasCapital Madrid  
+Brazil hasCapital Brasilia  
+Spain locatedIn Europe  
+Brazil locatedIn SouthAmerica  
+Madrid isPartOf Spain  
+Brasilia isPartOf Brazil  
+Spain hasCurrency EUR  
+Brazil hasCurrency BRL  
+Spain isMemberOf EU  
+Poland isMemberOf EU  
+Cervantes wasBornIn Spain  
+Cervantes wrote DonQuixote  
+Mozart wasBornIn Austria  
+Mozart composed Symphony_40  

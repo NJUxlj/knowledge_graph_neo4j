@@ -1,0 +1,16 @@
+Australia hasCapital Canberra  
+SouthKorea hasCapital Seoul  
+Australia locatedIn Oceania  
+SouthKorea locatedIn Asia  
+Canberra isPartOf Australia  
+Seoul isPartOf SouthKorea  
+Australia hasCurrency AUD  
+SouthKorea hasCurrency KRW  
+SouthKorea isMemberOf UN  
+Australia isMemberOf UN  
+DaVinci wasBornIn Italy  
+DaVinci painted MonaLisa  
+Plato wasBornIn Greece  
+Plato wrote Republic  
+Tesla wasBornIn Serbia  
+Tesla developed ACElectricity  
