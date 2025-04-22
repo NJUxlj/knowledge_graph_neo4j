@@ -8,11 +8,11 @@ import logging
 import json  
 from typing import Dict, Any, Optional  
 
-from config import Config  
-from loader import DataManager  
-from model import SemanticCompressor  
-from evaluate import CompressionEvaluator  
-from predict import LLMPredictor  
+from .config import Config  
+from .loader import DataManager  
+from .model import SemanticCompressor  
+from .evaluate import CompressionEvaluator  
+from .predict import LLMPredictor  
 
 def setup_logging():  
     """设置日志记录"""  
@@ -30,7 +30,7 @@ def parse_arguments():
     """解析命令行参数"""  
     parser = argparse.ArgumentParser(description='语义压缩系统')  
     
-    parser.add_argument('--input', type=str, required=True,  
+    parser.add_argument('--input', type=str, required=True, 
                         help='输入文档路径')  
     parser.add_argument('--output_dir', type=str, default='output',  
                         help='输出目录')  

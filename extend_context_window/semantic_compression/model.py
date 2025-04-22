@@ -119,7 +119,13 @@ class SemanticCompressor:
             # 获取邻接矩阵，矩阵元素值代表节点间的相似度权重
             adjacency_matrix = nx.to_numpy_array(G)  # shape = [len(chunks), len(chunks)]
             
-            # 使用层次聚类  
+            # 使用层次聚类 
+            '''
+            这是一种**自底向上**的聚类方法，初始时每个节点是一个簇，然后逐步合并最相似的簇
+                使用平均链接(average linkage)能平衡单链接(过于敏感)和全链接(过于保守)的特点
+                适合处理图结构数据，能保留原始相似度关系
+                时间复杂度较高(O(n³))，适合中小规模数据
+            ''' 
             clustering = AgglomerativeClustering(  
                 n_clusters=min(self.config.MAX_CLUSTERS, len(chunks)),  
                 affinity='precomputed',  # 表示直接使用计算好的距离矩阵
