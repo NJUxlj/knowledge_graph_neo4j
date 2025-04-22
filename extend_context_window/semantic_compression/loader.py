@@ -10,6 +10,9 @@ import PyPDF2
 import docx  
 from typing import List, Dict, Any, Union, Tuple  
 
+
+from .config import Config
+
 # 下载必要的NLTK数据  
 try:  
     nltk.data.find('tokenizers/punkt')  
@@ -120,7 +123,7 @@ class DocumentLoader:
 class DataManager:  
     """数据管理类，整合加载和预处理步骤"""  
     
-    def __init__(self, config):  
+    def __init__(self, config:Config):  
         self.config = config  
         self.loader = DocumentLoader()  
     
@@ -152,3 +155,22 @@ class DataManager:
             "initial_chunks": initial_chunks,  
             "file_path": file_path  
         }  
+        
+        
+        
+
+
+
+
+if __name__ == '__main__':
+    '''
+    python -m extend_context_window.semantic_compression.loader
+    '''
+    config = Config()
+    manager = DataManager(config)
+    
+    path = "extend_context_window\semantic_compression\Extending Context Window of Large Language Models via Semantic Compression.pdf"
+    result = manager.process_document(path)
+    
+    
+    print(result)

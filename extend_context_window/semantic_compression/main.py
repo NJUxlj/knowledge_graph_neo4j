@@ -34,6 +34,7 @@ def parse_arguments():
                         help='输入文档路径')  
     parser.add_argument('--output_dir', type=str, default='output',  
                         help='输出目录')  
+    
     parser.add_argument('--evaluate', action='store_true',  
                         help='是否评估压缩效果')  
     parser.add_argument('--predict', action='store_true',  
@@ -105,6 +106,7 @@ def main():
         # 提取关键信息  
         key_points = predictor.extract_key_information(compression_result['compressed_content'])  
         
+        
         # 保存关键信息  
         with open(os.path.join(args.output_dir, 'key_points.json'), 'w') as f:  
             json.dump(key_points, f, indent=4)  
@@ -124,4 +126,11 @@ def main():
     logger.info("语义压缩任务完成")  
 
 if __name__ == "__main__":  
+    '''
+    python -m extend_context_window.semantic_compression.main 
+    --input extend_context_window\semantic_compression\\test_doc.pdf 
+    --output_dir extend_context_window\semantic_compression\output 
+    --predict 
+    --questions extend_context_window\semantic_compression\questions.json  
+    '''
     main()  

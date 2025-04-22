@@ -19,7 +19,10 @@ python main.py --input your_document.pdf --output_dir ./output --evaluate
 python main.py --input your_document.pdf --output_dir ./output --predict  
 
 # 压缩并进行问答  
-python main.py --input your_document.pdf --output_dir ./output --predict --questions questions.json  
+python main.py \
+--input your_document.pdf \
+--output_dir ./output \
+--predict --questions questions.json  
 ```
 
 其中，questions.json 是一个包含问题列表的JSON文件，例如：

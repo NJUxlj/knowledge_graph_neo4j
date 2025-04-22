@@ -36,6 +36,12 @@
 
 
 
+### Agent模块
 
+- 借助Agent的编排能力，将所有图谱相关的能力整合到一起
+
+- kg_agent
+- long_context_agent
+- orchestrate_agent
 
 

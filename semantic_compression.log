@@ -1,0 +1,10 @@
+2025-04-22 19:46:46,792 - __main__ - INFO - 初始化配置
+2025-04-22 19:46:46,796 - __main__ - INFO - 加载文档: extend_context_window\semantic_compression\\test_doc.pdf
+2025-04-22 19:46:46,796 - extend_context_window.semantic_compression.loader - INFO - 加载文件: extend_context_window\semantic_compression\\test_doc.pdf
+2025-04-22 19:46:47,250 - extend_context_window.semantic_compression.loader - INFO - 加载完成, 文档长度: 40542 字符
+2025-04-22 19:46:47,307 - extend_context_window.semantic_compression.loader - INFO - 预处理完成, 共 375 个句子
+2025-04-22 19:46:47,311 - extend_context_window.semantic_compression.loader - INFO - 文本分块完成, 共 125 个块
+2025-04-22 19:46:47,311 - __main__ - INFO - 开始语义压缩
+2025-04-22 19:46:47,311 - extend_context_window.semantic_compression.model - INFO - 加载句子编码器: sentence-transformers/all-MiniLM-L6-v2
+2025-04-22 19:46:47,311 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-04-22 19:46:47,739 - sentence_transformers.SentenceTransformer - WARNING - No sentence-transformers model found with name sentence-transformers/all-MiniLM-L6-v2. Creating a new one with MEAN pooling.

@@ -18,7 +18,12 @@ from transformers import (
 from lift_tuning import LIFTConfig, LIFT
 
 from .evaluate import LIFTEvaluator
-from load import prepare_evaluation_datasets, EvaluationDataLoader
+from .load import (
+    prepare_evaluation_datasets, 
+    EvaluationDataLoader,
+    
+)
+
 
 def evaluate_lift_model():  
     """全面评测LIFT模型"""  
